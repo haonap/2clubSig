@@ -103,8 +103,9 @@ void GSIP_F2(int tau){
         //0=primal simplex, 1=dual simplex, 2=barrier
 
         //set global cut aggressiveness; over-ridden by individual cut settings
-        model.set(GRB_IntParam_Cuts,-1);
+        model.set(GRB_IntParam_Cuts,0);
         //0=no cuts;1=moderate;2=aggressive;3=very aggressive;-1=default
+        //model.set(GRB_IntParam_RLTCuts,0);
 
         //set maximum time limit
         model.set(GRB_DoubleParam_TimeLimit,7200);
@@ -147,6 +148,24 @@ void GSIP_F2(int tau){
             }
             cout << endl;
             cout << "2club signature size: " << count << endl;
+            cout << "Best window: ";
+            if(count != 0){
+                for(int t = 0; t < graphSeq.size(); t++){
+                    if(zvar[t].get(GRB_DoubleAttr_X) > 0.5){
+                        cout << t + 1 << " (";
+                        for(int i = t; i < t + tau; i++){
+                            cout << "G" << i + 1;
+                            if(i != t + tau -1){
+                                cout << " ";
+                            }
+                        }
+                        cout << ")" << endl;
+                        break;
+                    }
+                }
+            }else{
+                cout << endl;
+            }
             cout << "MIP gap: " << model.get(GRB_DoubleAttr_MIPGap) << endl;
             cout << "Best bound: " << model.get(GRB_DoubleAttr_ObjBound) << endl;
         }
@@ -167,17 +186,26 @@ void MW(int tau){
     cout << "\nMW..." << endl;
     cout << "Find " << tau << "-persistent 2club signature " << "T = " << graphs.size() << ", tau = " << tau << "..." << endl;
     vector<int> best2club;
+    vector<int> flagOptimal(T - tau + 1, 1);
     best2club.clear();
     int peel = 0;
     int bestWindow = 0;
 
     for(int i = 0; i < T - tau + 1; i++){
         cout << "\nIn window " << i + 1 << "..." << endl;
-        vector<int> p2club = GetPersistent2ClubWindow(i, tau, &peel);
+        vector<int> p2club = GetPersistent2ClubWindow(i, tau, &peel, &flagOptimal);
 
         if(best2club.size() < p2club.size()){
             best2club = p2club;
             bestWindow = i;
+        }
+
+        if(i > 0){
+            if(flagOptimal[i] == 0){
+                if(flagOptimal[i - 1] == 0){
+                    break;
+                }
+            }
         }
     }
 
@@ -187,20 +215,25 @@ void MW(int tau){
     }
     cout << endl;
     cout << "2club size: " << best2club.size() << endl;
-    cout << "Best window: " << bestWindow + 1 << " (";
-    for(int i = bestWindow; i < bestWindow + tau; i++){
-        cout << "G" << i + 1;
-        if(i < bestWindow + tau - 1){
-            cout << " ";
+    if((int)best2club.size() == 0){
+        cout << "Best window: " << endl;
+    }else{
+        cout << "Best window: " << bestWindow + 1 << " (";
+        for(int i = bestWindow; i < bestWindow + tau; i++){
+            cout << "G" << i + 1;
+            if(i < bestWindow + tau - 1){
+                cout << " ";
+            }
         }
+        cout << ")" << endl;
     }
-    cout << ")" << endl;
     cout << "Processing time: " <<  fixed << setprecision(2) << (get_wall_time() - st) << " sec" << endl;
 }
 
 
-vector<int> GetPersistent2ClubWindow(int windowHead, int tau, int* peelP) {
+vector<int> GetPersistent2ClubWindow(int windowHead, int tau, int* peelP, vector<int>* flagOptimalP) {
     vector<int> best2club;
+    int upperBound = graphSeq[windowHead].n + 1;
 
     //create an intersection graph of power graphs
     for (int i = 0; i < graphSeq.size(); i++) {
@@ -300,7 +333,7 @@ vector<int> GetPersistent2ClubWindow(int windowHead, int tau, int* peelP) {
             //0=primal simplex, 1=dual simplex, 2=barrier
 
             //set global cut aggressiveness; over-ridden by individual cut settings
-            model.set(GRB_IntParam_Cuts, -1);
+            model.set(GRB_IntParam_Cuts, 0);
             //0=no cuts;1=moderate;2=aggressive;3=very aggressive;-1=default
 
             //set maximum time limit
@@ -344,22 +377,33 @@ vector<int> GetPersistent2ClubWindow(int windowHead, int tau, int* peelP) {
                         best2club.push_back(nodes[i]);
                     }
                 }
+                upperBound = model.get(GRB_DoubleAttr_ObjBound);
             }
+
         } catch (GRBException e) {
             cout << "Error code = " << e.getErrorCode() << endl;
             cout << e.getMessage() << endl;
         } catch (...) {
             cout << "Exception during optimization" << endl;
         }
+    }else{
+        upperBound = heu2club.size();
     }
+
     if(heu2club.size() > best2club.size()){
         if(*peelP < heu2club.size()){
             *peelP = (int)heu2club.size();
+        }
+        if(upperBound - heu2club.size() >= 1){
+            (*flagOptimalP)[windowHead] = 0;
         }
         return heu2club;
     }else{
         if(*peelP < best2club.size()){
             *peelP = (int)best2club.size();
+        }
+        if(upperBound - best2club.size() >= 1){
+            (*flagOptimalP)[windowHead] = 0;
         }
         return best2club;
     }

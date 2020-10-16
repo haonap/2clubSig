@@ -4,8 +4,21 @@
 using namespace std;
 
 int main(){
-    //ReadIn("adjnoun_10_0.8"); // this function reads in a graph sequence from folder "graphSequences"
-    //GSIP_F2(3); // this function finds 2club signature using GSIP-F2 in the paper
-    //MW(3); // this function finds 2club signature suing Algorithm2 in the paper
+    string seqName;
+    int tau, method;
+    fstream fin("instance.txt", fstream::in);
+    fin >> seqName;
+    fin >> tau;
+    fin >> method;
+    fin.close();
+
+    ReadIn(seqName);
+
+    if(method == 1){
+        GSIP_F2(tau);
+    }else if(method == 2){
+        MW(tau);
+    }
+
     return 0;
 }

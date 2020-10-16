@@ -37,7 +37,7 @@ using namespace std;
 void ReadIn(string);
 void GSIP_F2(int);
 void MW(int);
-vector<int> GetPersistent2ClubWindow(int, int, int*);
+vector<int> GetPersistent2ClubWindow(int, int, int*, vector<int>*);
 graph GetIntersectionGraphOfPowerGraphs(int, int);
 
 graph GetIntersectionGraph(int, int);
