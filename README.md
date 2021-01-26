@@ -1,14 +1,12 @@
 # Code for computing 2-club signatures
 This repository contains C++ code used for computing 2-club signatures in the article "Graph Signatures: Identification and Optimization" which has been submitted to European Journal of Operational Research. If you wish to use or cite this code, please cite:
-        
-    @misc{MW2CLB-GithubRepo,
-      Author = {Hao Pan and Balabhaskar Balasundaram and Juan S. Borrero},
-      Date-Added = {2020-10-15 17:38:24 -0500},
-      Date-Modified = {2020-10-15 17:38:59 -0500},
-      Howpublished = {Codes and instances online at: \url{https://github.com/haonap/2clubSig}},
-      Month = {October },
-      Title = {Implementation of the moving window method for the maximum 2-club signature problem.},
-      Year = {2020}}
+      
+    @article{BBJBHP2021g-sign,
+        author = {Balabhaskar Balasundaram and Juan S. Borrero and Hao Pan},
+        journal = {European Journal of Operational Research},
+        note = {Under Review},
+        title = {Graph Signatures: {I}dentification and Optimization},
+        year = {2021}}
       
 # Compilaton and execution in Linux environment
 1. Download or clone the repository to your machine. 
