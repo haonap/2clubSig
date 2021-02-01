@@ -210,7 +210,6 @@ void commonNeighborLazyCut::callback(){
                 }
             }
 
-            vector<vector<int>> commonNeighborsWindow;
             vector<int> commonNeighbors;
             int count;
             for(int u = 0; u < curSol.size(); u++){
@@ -219,16 +218,13 @@ void commonNeighborLazyCut::callback(){
                 for(int v = u + 1; v < curSol.size(); v++){
                     int flag2 = 0;
                     int vNode = curSol[v];
-                    commonNeighborsWindow.clear();
                     for(int t = windowHead; t < windowHead + tau; t++){
                         int flag1 = 0;
                         if((*graphSeqP)[t].IsAdj(uNode, vNode) == 0){
                             commonNeighbors = (*graphSeqP)[t].FindCommonNeighbors(uNode, vNode);
-                            commonNeighborsWindow.push_back(commonNeighbors);
                             count = 0;
                             for(int w = 0; w < commonNeighbors.size(); w++){
                                 int pNeighbor = commonNeighbors[w];
-
 
                                 if((*nodeMapP)[pNeighbor] > -1){
                                     if(xval[(*nodeMapP)[pNeighbor]] > 0.5){
@@ -244,17 +240,17 @@ void commonNeighborLazyCut::callback(){
                                 flag1 = 1;
                                 flag2 = 1;
                                 flag3 = 1;
-                                for(int q = 0; q < commonNeighborsWindow.size(); q++){
-                                    GRBLinExpr expr = 0;
-                                    for(int p = 0; p < commonNeighborsWindow[q].size(); p++){
-                                        int pNeighbor = commonNeighborsWindow[q][p];
-                                        if((*nodeMapP)[pNeighbor] > -1){
-                                            expr += xvar[(*nodeMapP)[pNeighbor]];
-                                        }
-                                    }
-                                    addLazy(xvar[(*nodeMapP)[uNode]] + xvar[(*nodeMapP)[vNode]] - expr <= 1);
-                                }
 
+                                int mCount = 0;
+                                GRBLinExpr expr = 0;
+                                for(int p = 0; p < commonNeighbors.size(); p++){
+                                    int pNeighbor = commonNeighbors[p];
+                                    if((*nodeMapP)[pNeighbor] > -1){
+                                        expr += xvar[(*nodeMapP)[pNeighbor]];
+                                    }
+                                }
+                                //cout << mCount << " " << commonNeighbors.size() << endl;
+                                addLazy(xvar[(*nodeMapP)[uNode]] + xvar[(*nodeMapP)[vNode]] - expr <= 1);
                             }
                         }
                         if(flag1 == 1){
