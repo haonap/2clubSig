@@ -920,6 +920,7 @@ void emptyDir(string dirName){
 }
 
 
+// go to a directory
 void goToDir(string dirName){
     chdir(dirName.c_str());
 }
