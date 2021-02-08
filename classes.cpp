@@ -42,6 +42,7 @@ graph::graph(string nameG){
 }
 
 
+// get k-core of a graph
 void graph::GetKCore(int k){
     queue<int> Q;
     vector<int> F, D;
@@ -85,6 +86,7 @@ void graph::GetKCore(int k){
 }
 
 
+// check if u is adjacent to v
 bool graph::IsAdj(int u, int v){
     if(binary_search(nodeList[u].neighbors.begin(), nodeList[u].neighbors.end(), v)){
         return 1;
@@ -94,6 +96,7 @@ bool graph::IsAdj(int u, int v){
 }
 
 
+// check if u is in distance at most k to v
 bool graph::IsKAdj(int u, int v){
     if(binary_search(nodeList[u].kNeighbors.begin(), nodeList[u].kNeighbors.end(), v)){
         return 1;
@@ -103,6 +106,7 @@ bool graph::IsKAdj(int u, int v){
 }
 
 
+// find common neighbors of u and v
 vector<int> graph::FindCommonNeighbors(int u, int v){
     vector<int> comNeighbors;
     int i = 0, j = 0;
@@ -121,6 +125,7 @@ vector<int> graph::FindCommonNeighbors(int u, int v){
 }
 
 
+// find distance-k neighbors of all vertices
 void graph::FindKNeighbors(int k) {
     for(int i = 0; i < n; i++){
         nodeList[i].kNeighbors.clear();
@@ -129,6 +134,7 @@ void graph::FindKNeighbors(int k) {
 }
 
 
+// find all vertices connected to a vertex
 vector<int> graph::BFS(int s){
     vector<int> tempVec;
     vector<int> distance(n, n);
@@ -159,6 +165,7 @@ vector<int> graph::BFS(int s){
 }
 
 
+// find distance-k neighbors of a vertex
 vector<int> graph::KBFS(int s, int k){
     vector<int> tempVec;
     vector<int> distance(n, n);
@@ -175,7 +182,7 @@ vector<int> graph::KBFS(int s, int k){
             v = nodeList[u].neighbors[i];
             if(distance[v] > distance[u] + 1){
                 distance[v] = distance[u] + 1;
-                if(distance[v] > k){ //KBFS will stop at level k
+                if(distance[v] > k){ // KBFS will stop at level k
                     goFlag = 0;
                     break;
                 }else{
@@ -195,9 +202,8 @@ vector<int> graph::KBFS(int s, int k){
 }
 
 
+// Gurobi callback, adding common neighbor constraints as lazy cuts
 commonNeighborLazyCut::commonNeighborLazyCut(GRBVar* xvar, vector<int>* nodesP, vector<int>* nodeMapP, vector<graph>* graphSeqP, int windowHead, int tau): xvar(xvar), nodesP(nodesP), nodeMapP(nodeMapP), graphSeqP(graphSeqP), windowHead(windowHead), tau(tau){}
-
-
 void commonNeighborLazyCut::callback(){
     try{
         if(where==GRB_CB_MIPSOL){ //if get an integer solution
@@ -249,7 +255,6 @@ void commonNeighborLazyCut::callback(){
                                         expr += xvar[(*nodeMapP)[pNeighbor]];
                                     }
                                 }
-                                //cout << mCount << " " << commonNeighbors.size() << endl;
                                 addLazy(xvar[(*nodeMapP)[uNode]] + xvar[(*nodeMapP)[vNode]] - expr <= 1);
                             }
                         }
@@ -273,4 +278,3 @@ void commonNeighborLazyCut::callback(){
         cout << "Error during callback" << endl;
     }
 }
-
